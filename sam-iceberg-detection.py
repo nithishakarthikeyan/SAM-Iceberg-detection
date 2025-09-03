@@ -1,50 +1,47 @@
+# Clones and installs samgeo, and installs all the required python packages
 !git clone https://github.com/cheginit/samgeo.git
 %cd samgeo
 !pip install . --no-deps
 !pip install geopandas rasterio matplotlib segment-geospatial
 
+# Authenticates your account to access the assets in google earth engine
 import geemap
 import ee
 ee.Authenticate()
 ee.Initialize(project='ee-nithishak02')
 
-
-
 # Load the specific image asset
-image = ee.Image("projects/ee-nithishak02/assets/thwaites_feb_2019")
+image = ee.Image("projects/ee-username/assets/thwaites_feb_2019") # Modify the path accordingly
 
-# Check the bands
+# Check what bands are available (HH, VV)
 print("Bands:", image.bandNames().getInfo())
-
-
 
 # Define a small bounding box around your coordinates (about 5 km across)
 point = ee.Geometry.Point([-102.26612818779797, -74.44129673242924])
-region = point.buffer(2500).bounds()  # buffer in meters → bounds gives rectangle
+region = point.buffer(2500).bounds()  
 
-# Clip the image to this small region
+# Clip the image to this small region and save it as an output
 clipped = image.clip(region)
-
-# Path to save the output
-output_tif = "/content/thwaites_feb_2019_clip.tif"
+output_tif = "/content/thwaites_feb_2019_clip.tif" # Modify the path accordingly
 
 # Export the clipped image
 geemap.ee_export_image(
-    clipped.select(['HH']),  # Select band if needed
+    clipped.select(['HH']),  
     filename=output_tif,
     scale=10,
     region=region,
     file_per_band=False
 )
 
+# For checking purposes, ensuring that the file exists and there are contents present
 import os
 print("Exists:", os.path.exists(output_tif))
 print("Size:", os.path.getsize(output_tif) if os.path.exists(output_tif) else "No file")
 
 
-# Convert HH band to RGB-friendly format (0–255)
+# Convert HH band to RGB-friendly format
 vis_params = {
-    'min': -25,  # adjust to your SAR histogram
+    'min': -25,  # Adjust accordingly
     'max': 0,
 }
 rgb_image = clipped.select('HH').visualize(**vis_params)
@@ -57,7 +54,7 @@ geemap.ee_export_image(
     region=region
 )
 
-
+# Installs the latest version of samgeo with the highest quality
 !pip install git+https://github.com/cheginit/samgeo.git
 
 from samgeo import SamGeo
@@ -136,72 +133,7 @@ plt.ylabel("Number of Icebergs")
 plt.title("Iceberg Size Distribution (Feb 2019)")
 plt.show()
 
-# Define a small bounding box around your coordinates (about 5 km across)
-point = ee.Geometry.Point([-102.26612818779797, -74.44129673242924])
-region = point.buffer(2500).bounds()  # buffer in meters → bounds gives rectangle
 
-# Clip the image to this small region
-clipped = image.clip(region)
-
-# Path to save the output
-output_tif = "/content/thwaites_feb_2016_clip.tif"
-
-# Export the clipped image
-geemap.ee_export_image(
-    clipped.select(['HH']),  # Select band if needed
-    filename=output_tif,
-    scale=10,
-    region=region,
-    file_per_band=False
-)
-
-import os
-print("Exists:", os.path.exists(output_tif))
-print("Size:", os.path.getsize(output_tif) if os.path.exists(output_tif) else "No file")
-
-# Convert HH band to RGB-friendly format (0–255)
-vis_params = {
-    'min': -25,  # adjust to your SAR histogram
-    'max': 0,
-}
-rgb_image = clipped.select('HH').visualize(**vis_params)
-
-# Export the visualization instead of raw SAR
-geemap.ee_export_image(
-    rgb_image,
-    filename=output_tif,
-    scale=10,
-    region=region
-)
-
-
-sam.generate(
-    source=output_tif,
-    output="/content/thwaites_feb_2016_clip_mask.tif"
-)
-
-import matplotlib.pyplot as plt
-import rasterio
-
-# Read the SAM mask
-mask_path = "/content/thwaites_feb_2016_clip_mask.tif"
-with rasterio.open(mask_path) as src:
-    mask = src.read(1)  # first band
-
-# Plot it
-plt.figure(figsize=(10, 10))
-plt.imshow(mask, cmap='tab20')
-plt.title("SAM Iceberg Segmentation")
-plt.axis("off")
-plt.show()
-
-
-with rasterio.open(output_tif) as src:
-    img = src.read(1)  # HH grayscale
-
-plt.figure(figsize=(10, 10))
-plt.imshow(img, cmap='gray')
-plt.imshow(mask, cmap='tab20', alpha=0.5)  # transparent overlay
 plt.title("Icebergs Detected Feb 2016")
 plt.axis("off")
 plt.show()
