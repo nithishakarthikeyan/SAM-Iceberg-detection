@@ -1,3 +1,7 @@
+
+<img width="400" height="400" alt="icebergs_feb2015" src="https://github.com/user-attachments/assets/ef86964d-7980-4d79-a7b4-06b5c0c78f6e" />
+
+
 **The Google Earth Engine image export script**
 
 This script uses Google Earth Engine to extract Sentinel-1 SAR data over the Thwaites Glacier region for a chosen month. It starts by filtering the Sentinel-1 GRD image collection by location, date, instrument mode (IW), polarization (HH), and orbit pass (descending). Then, it takes the median of the pixel size over the month for all the images and outputs a single image. A small region of interest around the specified coordinates is defined for visualization and export. The script adds the clipped image layer to the map for a quick sanity check, and finally, it exports the processed image to the user’s GEE assets at 10-meter resolution for later use of segmentation and iceberg detection. 
